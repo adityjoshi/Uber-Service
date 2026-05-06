@@ -16,14 +16,9 @@ type RedisConfig struct {
 }
 
 func LoadRedisFromEnv() RedisConfig {
-	portStr := os.Getenv("REDIS_PORT")
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		port = 6379
-	}
 	return RedisConfig{
 		Host: os.Getenv("REDIS_HOST"),
-		Port: port,
+		Port: getEnvIntDefault("REDIS_PORT", 6379),
 	}
 }
 
