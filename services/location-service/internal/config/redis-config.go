@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -38,4 +39,20 @@ func NewRedisClient(cfg RedisConfig) *redis.Client {
 		WriteTimeout: 3 * time.Second,
 		PoolSize:     10,
 	})
+}
+
+func PingRedis(ctx context.Context, rdb *redis.Client) error {
+	return rdb.Ping(ctx).Err()
+}
+
+func getEnvIntDefault(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		return fallback
+	}
+	return n
 }
