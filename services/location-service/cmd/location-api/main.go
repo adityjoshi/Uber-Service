@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/adityjoshi/Uber-Service/services/location-service/internal/config"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -21,4 +22,13 @@ func main() {
 		log.Fatalf("redis connection failed: %v", err)
 	}
 	log.Println("Redis Connection Success")
+
+	router := gin.Default()
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "healthy"})
+		return
+	})
+
+	log.Fatal(router.Run(":8082"))
 }
