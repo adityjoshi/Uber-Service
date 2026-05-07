@@ -27,7 +27,6 @@ func main() {
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "healthy"})
-		return
 	})
 
 	log.Fatal(router.Run(":8082"))
