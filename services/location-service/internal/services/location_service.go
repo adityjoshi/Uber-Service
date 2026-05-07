@@ -66,3 +66,10 @@ func (s *LocationService) FindNearbyDriver(
 	}
 	return drivers, nil
 }
+
+func (s *LocationService) RemoveDriver(ctx context.Context, driverID string) error {
+	if driverID == "" {
+		return errors.New("driver id is required")
+	}
+	return s.rdb.ZRem(ctx, driversGeoKey, driverID).Err()
+}
