@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 
 	"github.com/adityjoshi/Uber-Service/services/location-service/internal/dto"
 	"github.com/redis/go-redis/v9"
@@ -72,4 +73,11 @@ func (s *LocationService) RemoveDriver(ctx context.Context, driverID string) err
 		return errors.New("driver id is required")
 	}
 	return s.rdb.ZRem(ctx, driversGeoKey, driverID).Err()
+}
+
+func (s *LocationService) Validate() error {
+	if s == nil || s.rdb == nil {
+		return fmt.Errorf("location is not init")
+	}
+	return nil
 }
