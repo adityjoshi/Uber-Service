@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 
+	"github.com/adityjoshi/Uber-Service/services/location-service/internal/dto"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -31,4 +33,36 @@ func (s *LocationService) UpdateDriverLocation(
 		Longitude: long,
 		Latitude:  lat,
 	}).Err()
+}
+
+func (s *LocationService) FindNearbyDriver(
+	ctx context.Context,
+	lat float64,
+	long float64,
+	radiusInKm float64,
+) ([]dto.NearByDriverResponse, error) {
+	results, err := s.rdb.GeoRadius(ctx, driversGeoKey, lat, long, &redis.GeoRadiusQuery{
+		Radius:    radiusInKm,
+		Unit:      "km",
+		WithCoord: true,
+		WithDist:  true,
+		Sort:      "ASC",
+		Count:     10,
+	}).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	drivers := make([]dto.NearByDriverResponse, 0, len(results))
+
+	for _, result := range results {
+		driver := dto.NearByDriverResponse{
+			DriverID: result.Name,
+			Distance: result.Dist,
+			Lat:      result.Latitude,
+			Long:     result.Longitude,
+		}
+		drivers = append(drivers, driver)
+	}
+	return drivers, nil
 }
