@@ -86,3 +86,17 @@ func (h *LocationHandler) GetNearbyDriver(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, drivers)
 }
+
+func (h *LocationHandler) RemoveDriver(c *gin.Context) {
+	driverID := c.Param("driverID")
+	err := h.svc.RemoveDriver(c.Request.Context(), driverID)
+	if err != nil {
+		if errors.Is(err, services.ErrDriverIDRequired) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "driverID is require"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "driver removed"})
+}
