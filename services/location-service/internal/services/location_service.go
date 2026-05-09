@@ -9,6 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var ErrDriverIDRequired = errors.New("driverID is required")
+
 type LocationService struct {
 	rdb *redis.Client
 }
@@ -25,7 +27,7 @@ func (s *LocationService) UpdateDriverLocation(
 	lat float64,
 	long float64) error {
 	if driverID == "" {
-		return errors.New("driverid is required")
+		return ErrDriverIDRequired
 	}
 
 	return s.rdb.GeoAdd(ctx, driversGeoKey, &redis.GeoLocation{
@@ -79,7 +81,7 @@ func (s *LocationService) FindNearbyDriver(
 
 func (s *LocationService) RemoveDriver(ctx context.Context, driverID string) error {
 	if driverID == "" {
-		return errors.New("driver id is required")
+		return ErrDriverIDRequired
 	}
 	return s.rdb.ZRem(ctx, driversGeoKey, driverID).Err()
 }
