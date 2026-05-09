@@ -42,14 +42,24 @@ func (s *LocationService) FindNearbyDriver(
 	long float64,
 	radiusInKm float64,
 ) ([]dto.NearByDriverResponse, error) {
-	results, err := s.rdb.GeoRadius(ctx, driversGeoKey, lat, long, &redis.GeoRadiusQuery{
-		Radius:    radiusInKm,
-		Unit:      "km",
-		WithCoord: true,
-		WithDist:  true,
-		Sort:      "ASC",
-		Count:     10,
-	}).Result()
+
+	results, err := s.rdb.GeoSearchLocation(
+		ctx,
+		driversGeoKey,
+		&redis.GeoSearchLocationQuery{
+			GeoSearchQuery: redis.GeoSearchQuery{
+				Longitude:  long,
+				Latitude:   lat,
+				Radius:     radiusInKm,
+				RadiusUnit: "km",
+				Sort:       "ASC",
+				Count:      10,
+			},
+			WithCoord: true,
+			WithDist:  true,
+		},
+	).Result()
+
 	if err != nil {
 		return nil, err
 	}
