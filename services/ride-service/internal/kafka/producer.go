@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/segmentio/kafka-go"
@@ -21,4 +22,11 @@ func NewProducer() *Producer {
 	}
 	log.Printf("kakfa Producer connected to %v", brokers)
 	return &Producer{writer: writer}
+}
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
