@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: .. 
+      context: ../..
       dockerfile: services/location-service/Dockerfile
     ports:
       - "8082:8082"

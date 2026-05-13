@@ -30,7 +30,7 @@ func main() {
 	r.GET("/ready", readyHandler)
 
 	addr := getenv("HTTP_ADDR", ":8083")
-	log.Println("ride-service started listening on %s", addr)
+	log.Printf("ride-service started listening on %s \n", addr)
 	if err := r.Run(addr); err != nil {
 		log.Fatal(err)
 	}
