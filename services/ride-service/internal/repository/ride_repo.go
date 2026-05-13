@@ -83,3 +83,18 @@ func (r *RideRepository) FindByRiderId(ctx context.Context, riderId string) ([]*
 	}
 	return rides, nil
 }
+
+type scanner interface {
+	Scan(dest ...any) error
+}
+
+func scanRide(s scanner) (*model.Ride, error) {
+	var ride model.Ride
+	err := s.Scan(&ride.ID, &ride.RiderID, &ride, ride.DriverID, &ride.PickupLatitude, &ride.PickupLongitude, &ride.PickupAddress, &ride.DropLatitude, &ride.DropLongitude,
+		&ride.DropAddress, &ride.Status, &ride.EstimatedFare, &ride.ActualFare, &ride.CreatedAt, &ride.UpdatedAt, &ride.StartedAt, &ride.CompletedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &ride, nil
+}
