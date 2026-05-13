@@ -2,6 +2,12 @@ package dto
 
 import "time"
 
+type RideStatus string
+
+const (
+	RideStatusRequested RideStatus = "REQUESTED"
+)
+
 type RideRequest struct {
 	RiderID       string  `json:"riderId"`
 	PickupLat     float64 `json:"pickupLat"`
