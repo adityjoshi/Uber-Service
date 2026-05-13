@@ -10,3 +10,12 @@ type RideRequestedEvent struct {
 	DropLongitude   float64 `json:"dropLongitude"`
 	DropAddress     string  `json:"dropAddress"`
 }
+
+type RideMatchedEvent struct {
+	RideId             string  `json:"rideId"`
+	RiderID            string  `json:"riderId"`
+	DriverID           string  `json:"driverID"`
+	DriverLatitude     float64 `json:"driverLatitude"`
+	DriverLongitude    float64 `json:"driverLongitude"`
+	DistanceToPickupKm float64 `json:"distanceToPickupKm"`
+}
