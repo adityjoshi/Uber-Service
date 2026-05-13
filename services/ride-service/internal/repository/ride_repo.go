@@ -45,3 +45,18 @@ func (r *RideRepository) Save(ctx context.Context, ride *model.Ride) error {
 	return nil
 
 }
+
+func (r *RideRepository) FindById(ctx context.Context, id string) (*model.Ride, error) {
+
+	query := `
+	SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drpp_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
+	FROM rides
+	WHERE id = $1
+	`
+	row := r.db.QueryRow(ctx, query, id)
+	ride, err := scanRide(row)
+	if err != nil {
+		return nil, fmt.Errorf("repository: find ride by id: %w", err)
+	}
+	return ride, nil
+}
