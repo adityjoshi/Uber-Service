@@ -6,6 +6,12 @@ type RideStatus string
 
 const (
 	RideStatusRequested RideStatus = "REQUESTED"
+	RideStatusRequested RideStatus = "MATCHING"
+	RideStatusRequested RideStatus = "ACCEPTED"
+	RideStatusRequested RideStatus = "DRIVER_ARIVING"
+	RideStatusRequested RideStatus = "RIDE_STARTED"
+	RideStatusRequested RideStatus = "COMPLETED"
+	RideStatusRequested RideStatus = "CANCELLED"
 )
 
 type RideRequest struct {
