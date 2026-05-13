@@ -60,3 +60,26 @@ func (r *RideRepository) FindById(ctx context.Context, id string) (*model.Ride, 
 	}
 	return ride, nil
 }
+
+func (r *RideRepository) FindByRiderId(ctx context.Context, riderId string) ([]*model.Ride, error) {
+	query := `
+		SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drpp_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
+	FROM rides where rider_id = $1 ORDER BY created_at DESC
+
+	`
+	rows, err := r.db.Query(ctx, query, riderId)
+	if err != nil {
+		return nil, fmt.Errorf("repository: find rides by rider: %w", err)
+	}
+	defer rows.Close()
+
+	var rides []*model.Ride
+	for rows.Next() {
+		ride, err := scanRide(rows)
+		if err != nil {
+			return nil, fmt.Errorf("repository: scan ride: %w", err)
+		}
+		rides = append(rides, ride)
+	}
+	return rides, nil
+}
