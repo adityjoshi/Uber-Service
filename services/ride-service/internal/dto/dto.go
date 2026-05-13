@@ -5,13 +5,13 @@ import "time"
 type RideStatus string
 
 const (
-	RideStatusRequested RideStatus = "REQUESTED"
-	RideStatusRequested RideStatus = "MATCHING"
-	RideStatusRequested RideStatus = "ACCEPTED"
-	RideStatusRequested RideStatus = "DRIVER_ARIVING"
-	RideStatusRequested RideStatus = "RIDE_STARTED"
-	RideStatusRequested RideStatus = "COMPLETED"
-	RideStatusRequested RideStatus = "CANCELLED"
+	RideStatusRequested      RideStatus = "REQUESTED"
+	RideStatusMatching       RideStatus = "MATCHING"
+	RideStatusAccepted       RideStatus = "ACCEPTED"
+	RideStatusDriverArriving RideStatus = "DRIVER_ARIVING"
+	RideStatusRideStarted    RideStatus = "RIDE_STARTED"
+	RideStatusCompleted      RideStatus = "COMPLETED"
+	RideStatusCancelled      RideStatus = "CANCELLED"
 )
 
 type RideRequest struct {
