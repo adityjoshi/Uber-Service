@@ -1,0 +1,42 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres 
+      DB_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U POSTGRES_USER -d POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    brokers:
+      - kafka: 9092
+    consumer:
+      group_id: ride-service-group
+      auto_offset_reset: earliest
+    topics:
+      ride_requested: ride.requested
+      ride_matched: ride.matched
+
+volumes:
+  postgres_data:
+
