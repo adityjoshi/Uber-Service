@@ -2,18 +2,6 @@ package dto
 
 import "time"
 
-type RideStatus string
-
-const (
-	RideStatusRequested      RideStatus = "REQUESTED"
-	RideStatusMatching       RideStatus = "MATCHING"
-	RideStatusAccepted       RideStatus = "ACCEPTED"
-	RideStatusDriverArriving RideStatus = "DRIVER_ARIVING"
-	RideStatusRideStarted    RideStatus = "RIDE_STARTED"
-	RideStatusCompleted      RideStatus = "COMPLETED"
-	RideStatusCancelled      RideStatus = "CANCELLED"
-)
-
 type RideRequest struct {
 	RiderID       string  `json:"riderId"`
 	PickupLat     float64 `json:"pickupLat"`
