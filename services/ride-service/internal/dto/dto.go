@@ -18,8 +18,8 @@ type RideRequest struct {
 
 type RideResponse struct {
 	Id            string           `json:"id"`
-	RiderId       float64          `json:"riderId"`
-	DriverId      float64          `json:"driverId"`
+	RiderId       string           `json:"riderId"`
+	DriverId      string           `json:"driverId"`
 	PickupLat     float64          `json:"pickupLat"`
 	PickupLong    float64          `json:"pickupLong"`
 	PickupAddress string           `json:"pickupAddress"`
