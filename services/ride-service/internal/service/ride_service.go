@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/dto"
@@ -71,6 +72,26 @@ func (s *RideService) RequestRide(ctx context.Context, req dto.RideRequest) (*dt
 		return nil, fmt.Errorf("service: update ride to matching: %w", err)
 	}
 	return mapToResponse(ride), err
+}
+
+// Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
+func calculateFare(lat1, lon1, lat2, lon2 float64) float64 {
+	const earthRadiusKm = 6371
+
+	dLat := toRad(lat2 - lat1)
+	dLon := toRad(lon2 - lon1)
+
+	a := math.Pow(math.Sin(dLat/2), 2) +
+		math.Cos(toRad(lat1))*math.Cos(toRad(lat2))*math.Pow(math.Sin(dLon/2), 2)
+
+	distanceKm := earthRadiusKm * 2 * math.Asin(math.Sqrt(a))
+
+	fare := 50 + (distanceKm * 12)
+	return math.Round(fare*100) / 100
+}
+
+func toRad(deg float64) float64 {
+	return deg * math.Pi / 180
 }
 
 func mapToResponse(r *model.Ride) *dto.RideResponse {
