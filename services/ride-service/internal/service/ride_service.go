@@ -9,3 +9,7 @@ type RideService struct {
 	repo     *repository.RideRepository
 	producer *kafka.Producer
 }
+
+func NewRideService(repo *repository.RideRepository, producer *kafka.Producer) *RideService {
+	return &RideService{repo: repo, producer: producer}
+}
