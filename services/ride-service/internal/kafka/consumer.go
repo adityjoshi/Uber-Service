@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 
@@ -61,4 +62,11 @@ func (c *Consumer) Start(ctx context.Context, handler RideMatchHandler) {
 
 		log.Printf("kafka consumer: processed ride.matched rideId=%s driverID=%s", event.RideId, event.DriverID)
 	}
+}
+
+func (c *Consumer) Close() error {
+	if err := c.reader.Close(); err != nil {
+		return fmt.Errorf("kafka consumer failed to close: %w", err)
+	}
+	return nil
 }
