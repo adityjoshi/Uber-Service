@@ -21,6 +21,7 @@ type RideRequestedEvent struct {
 /*
 *
 * RideMatchedEvent is consumed from the topic ride.matched
+*
 * published by the matching service when a driver is assigned
 * */
 
