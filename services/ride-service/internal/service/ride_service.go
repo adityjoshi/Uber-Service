@@ -13,9 +13,12 @@ import (
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/model"
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/repository"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 var ErrInvalidStatus = errors.New("ride not found")
+var ErrNoRideFound = errors.New("no rides found for the rider")
 
 type RideService struct {
 	repo     *repository.RideRepository
@@ -173,6 +176,18 @@ func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResp
 		return nil, err
 	}
 	return mapToResponse(ride), nil
+}
+
+func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.RideResponse, error) {
+	ride, err := s.findOrNotFound(ctx, riderID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("%w: %s", ErrNoRideFound, riderID)
+		}
+		return nil, fmt.Errorf("service: fetch rides error: %w", err)
+	}
+	return ride, nil
+
 }
 
 // Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
