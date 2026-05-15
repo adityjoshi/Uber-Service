@@ -167,6 +167,14 @@ func (s *RideService) CancelRide(ctx context.Context, rideID string) (*dto.RideR
 	return mapToResponse(ride), nil
 }
 
+func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResponse, error) {
+	ride, err := s.findOrNotFound(ctx, rideID)
+	if err != nil {
+		return nil, err
+	}
+	return mapToResponse(ride), nil
+}
+
 // Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
 func calculateFare(lat1, lon1, lat2, lon2 float64) float64 {
 	const earthRadiusKm = 6371
