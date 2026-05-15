@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -11,9 +12,10 @@ import (
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/kafka"
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/model"
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/repository"
-	"github.com/go-playground/validator/v10/translations/id"
 	"github.com/google/uuid"
 )
+
+var ErrInvalidStatus = errors.New("ride not found")
 
 type RideService struct {
 	repo     *repository.RideRepository
@@ -92,6 +94,10 @@ func (s *RideService) UpdateRideWithDriver(ctx context.Context, rideID, driverID
 	return nil
 }
 
+/*
+* changes the accepted -> ride started
+* */
+
 func (s *RideService) StartRide(ctx context.Context, rideID string) (*dto.RideResponse, error) {
 	ride, err := s.findOrNotFound(ctx, rideID)
 	if err != nil {
@@ -113,6 +119,36 @@ func (s *RideService) StartRide(ctx context.Context, rideID string) (*dto.RideRe
 
 	if err := s.repo.Save(ctx, ride); err != nil {
 		return nil, fmt.Errorf("service: ride start error: %w", err)
+	}
+	return mapToResponse(ride), nil
+}
+
+/*
+* Complete ride changes the ride started -> completed
+* */
+
+func (s *RideService) CompleteRide(ctx context.Context, rideID string) (*dto.RideResponse, error) {
+	ride, err := s.findOrNotFound(ctx, rideID)
+	if err != nil {
+		return nil, err
+	}
+	if ride.Status != model.RideStatusRideStarted {
+		return nil, fmt.Errorf("%w: cannot complete, current status is %s", ErrInvalidStatus, ride.Status)
+	}
+
+	loc, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().In(loc)
+
+	ride.Status = model.RideStatusCompleted
+	ride.CompletedAt = &now
+	ride.ActualFare = ride.EstimatedFare
+
+	if err != s.repo.Save(ctx, ride); err != nil {
+		return nil, fmt.Errorf("service: complete ride error: %w", err)
 	}
 	return mapToResponse(ride), nil
 }
