@@ -20,7 +20,14 @@ func NewRideHandler(svc *service.RideService) *RideHandler {
 }
 
 func (h *RideHandler) RegisterRoutes(r gin.Engine) {
-
+	v1 := r.Group("/api/v1/rides")
+	{
+		v1.POST("/request", h.requestRide)
+		v1.GET("/:rideId", h.getRide)
+		v1.GET("/rider/:riderId", h.listByRider)
+		v1.PUT("/:rideId/start", h.startRide)
+		v1.PUT("/:rideId/complete")
+	}
 }
 
 func (h *RideHandler) requestRide(c *gin.Context) {
