@@ -75,21 +75,46 @@ func (s *RideService) RequestRide(ctx context.Context, req dto.RideRequest) (*dt
 }
 
 /*
-* It is called by kafka consumer when the ride.matched is received 
+* It is called by kafka consumer when the ride.matched is received
 * */
 
 func (s *RideService) UpdateRideWithDriver(ctx context.Context, rideID, driverID string) error {
-	ride, err := findOrNotFound(ctx,rideID)
+	ride, err := s.findOrNotFound(ctx, rideID)
 	if err != nil {
 		return err
 	}
 	ride.DriverId = &driverID
 	ride.Status = model.RideStatusAccepted
 
-	if err := s.repo.Save(ctx,ride); if err != nil {
+	if err := s.repo.Save(ctx, ride); err != nil {
 		return fmt.Errorf("service: update ride with the driver: %w", err)
 	}
-return nil
+	return nil
+}
+
+func (s *RideService) StartRide(ctx context.Context, rideID string) (*dto.RideResponse, error) {
+	ride, err := s.findOrNotFound(ctx, rideID)
+	if err != nil {
+		return nil, err
+	}
+
+	if ride.Status != model.RideStatusAccepted {
+		return nil, fmt.Errorf("service: start ride error: %w", err)
+	}
+	loc, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		fmt.Println("Error loading location", err)
+		return nil, err
+	}
+
+	now := time.Now().In(loc)
+	ride.Status = model.RideStatusRideStarted
+	ride.StartedAt = &now
+
+	if err := s.repo.Save(ctx, ride); err != nil {
+		return nil, fmt.Errorf("service: ride start error: %w", err)
+	}
+	return mapToResponse(ride), nil
 }
 
 // Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
