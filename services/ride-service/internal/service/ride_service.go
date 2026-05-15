@@ -182,7 +182,7 @@ func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResp
 * */
 
 func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.RideResponse, error) {
-	rides, err := s.findOrNotFound(ctx, riderID)
+	rides, err := s.repo.FindByRiderId(ctx, riderID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%w: %s", ErrNoRideFound, riderID)
