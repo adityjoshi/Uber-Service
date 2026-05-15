@@ -74,6 +74,24 @@ func (s *RideService) RequestRide(ctx context.Context, req dto.RideRequest) (*dt
 	return mapToResponse(ride), err
 }
 
+/*
+* It is called by kafka consumer when the ride.matched is received 
+* */
+
+func (s *RideService) UpdateRideWithDriver(ctx context.Context, rideID, driverID string) error {
+	ride, err := findOrNotFound(ctx,rideID)
+	if err != nil {
+		return err
+	}
+	ride.DriverId = &driverID
+	ride.Status = model.RideStatusAccepted
+
+	if err := s.repo.Save(ctx,ride); if err != nil {
+		return fmt.Errorf("service: update ride with the driver: %w", err)
+	}
+return nil
+}
+
 // Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
 func calculateFare(lat1, lon1, lat2, lon2 float64) float64 {
 	const earthRadiusKm = 6371
