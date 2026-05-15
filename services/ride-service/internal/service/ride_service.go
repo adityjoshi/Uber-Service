@@ -48,7 +48,7 @@ func (s *RideService) RequestRide(ctx context.Context, req dto.RideRequest) (*dt
 		DropLongitude:   req.DropLong,
 		DropAddress:     req.DropAddress,
 		Status:          model.RideStatusRequested,
-		EstimatedFare:   calculateFare(req.PickupLatitude, req.PickupLong, req.DropLat, req.DropLong),
+		EstimatedFare:   calculateFare(req.PickupLat, req.PickupLong, req.DropLat, req.DropLong),
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
@@ -87,7 +87,7 @@ func (s *RideService) UpdateRideWithDriver(ctx context.Context, rideID, driverID
 	if err != nil {
 		return err
 	}
-	ride.DriverId = &driverID
+	ride.DriverID = &driverID
 	ride.Status = model.RideStatusAccepted
 
 	if err := s.repo.Save(ctx, ride); err != nil {
@@ -149,7 +149,7 @@ func (s *RideService) CompleteRide(ctx context.Context, rideID string) (*dto.Rid
 	ride.CompletedAt = &now
 	ride.ActualFare = ride.EstimatedFare
 
-	if err != s.repo.Save(ctx, ride); err != nil {
+	if err = s.repo.Save(ctx, ride); err != nil {
 		return nil, fmt.Errorf("service: complete ride error: %w", err)
 	}
 	return mapToResponse(ride), nil
