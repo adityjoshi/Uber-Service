@@ -76,3 +76,14 @@ func (h *RideHandler) startRide(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 
 }
+
+func (h *RideHandler) cancleRide(c *gin.Context) {
+	rideID := c.Param("rideID")
+
+	resp, err := h.svc.CancelRide(c.Request.Context(), rideID)
+	if err != nil {
+		h.handleServiceError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
