@@ -52,3 +52,13 @@ func (h *RideHandler) getRide(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, rides)
 }
+
+func (h *RideHandler) listByRider(c *gin.Context) {
+	riderID := c.Param("riderID")
+
+	rides, err := h.svc.ListByRider(c.Request.Context(), riderID)
+	if err != nil {
+		h.handleServiceError(c, err)
+	}
+	c.JSON(http.StatusOK, rides)
+}
