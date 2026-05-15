@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/dto"
-	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/handler"
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +18,7 @@ func NewRideHandler(svc *service.RideService) *RideHandler {
 	return &RideHandler{svc: svc}
 }
 
-func (h *RideHandler) RegisterRoutes(r gin.Engine) {
+func (h *RideHandler) RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/api/v1/rides")
 	{
 		v1.POST("/request", h.requestRide)
