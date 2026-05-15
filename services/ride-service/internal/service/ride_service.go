@@ -182,19 +182,30 @@ func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResp
 * */
 
 func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.RideResponse, error) {
-	ride, err := s.findOrNotFound(ctx, riderID)
+	rides, err := s.findOrNotFound(ctx, riderID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%w: %s", ErrNoRideFound, riderID)
 		}
 		return nil, fmt.Errorf("service: fetch rides error: %w", err)
 	}
-	responses := make([]*dto.RideResponse, len(ride))
-	for i, r := range ride {
+	responses := make([]*dto.RideResponse, len(rides))
+	for i, r := range rides {
 		responses[i] = mapToResponse(r)
 	}
 	return responses, nil
 
+}
+
+func (s *RideService) findOrNotFound(ctx context.Context, rideID string) (*model.Ride, error) {
+	ride, err := s.repo.FindById(ctx, rideID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("%w: %s", ErrNoRideFound, rideID)
+		}
+		return nil, fmt.Errorf("service: fetch ride: %w", err)
+	}
+	return ride, nil
 }
 
 // Base fare: ₹50 + ₹12/km, rounded to 2 decimal places.
