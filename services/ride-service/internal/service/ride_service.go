@@ -13,7 +13,6 @@ import (
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/model"
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/repository"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -178,6 +177,10 @@ func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResp
 	return mapToResponse(ride), nil
 }
 
+/*
+*List all the rides for the rider. Newest rides will be seen first
+* */
+
 func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.RideResponse, error) {
 	ride, err := s.findOrNotFound(ctx, riderID)
 	if err != nil {
@@ -186,7 +189,11 @@ func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.R
 		}
 		return nil, fmt.Errorf("service: fetch rides error: %w", err)
 	}
-	return ride, nil
+	responses := make([]*dto.RideResponse, len(ride))
+	for i, r := range ride {
+		responses[i] = mapToResponse(r)
+	}
+	return responses, nil
 
 }
 
