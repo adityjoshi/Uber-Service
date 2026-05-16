@@ -5,22 +5,41 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/db"
+	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/handler"
+	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/kafka"
+	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/repository"
+	"github.com/adityjoshi/Uber-Service/services/ride-service/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
 
 	if err := db.Init(ctx); err != nil {
 		log.Fatalf("failed to connect to the database: %v", err)
 	}
 	defer db.RidePool.Close()
 
+	producer := kafka.NewProducer()
+	defer producer.Close()
+
+	consumer := kafka.NewConsumer()
+	defer consumer.Close()
+
+	repo := repository.NewRideRepository(db.RidePool)
+	svc := service.NewRideService(repo, producer)
+
+	go consumer.Start(ctx, func(ctx context.Context, event kafka.RideMatchedEvent) error {
+		return svc.UpdateRideWithDriver(ctx, event.RideId, event.DriverID)
+	})
 	r := gin.Default()
 
 	r.GET("/healthy", func(c *gin.Context) {
@@ -29,11 +48,20 @@ func main() {
 
 	r.GET("/ready", readyHandler)
 
+	rideHandler := handler.NewRideHandler(svc)
+	rideHandler.RegisterRoutes(r)
+
 	addr := getenv("HTTP_ADDR", ":8083")
 	log.Printf("ride-service started listening on %s \n", addr)
-	if err := r.Run(addr); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		if err := r.Run(addr); err != nil {
+			log.Fatal(err)
+		}
+
+	}()
+
+	<-ctx.Done()
+	log.Println("ride service shutting down")
 
 }
 
