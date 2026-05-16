@@ -52,7 +52,7 @@ func (h *RideHandler) requestRide(c *gin.Context) {
 }
 
 func (h *RideHandler) getRide(c *gin.Context) {
-	riderID := c.Param("rideID")
+	riderID := c.Param("rideId")
 	rides, err := h.svc.GetRide(c.Request.Context(), riderID)
 	if err != nil {
 		h.handleServiceError(c, err)
@@ -62,7 +62,7 @@ func (h *RideHandler) getRide(c *gin.Context) {
 }
 
 func (h *RideHandler) listByRider(c *gin.Context) {
-	riderID := c.Param("riderID")
+	riderID := c.Param("riderId")
 
 	rides, err := h.svc.ListByRider(c.Request.Context(), riderID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (h *RideHandler) listByRider(c *gin.Context) {
 }
 
 func (h *RideHandler) startRide(c *gin.Context) {
-	riderID := c.Param("riderID")
+	riderID := c.Param("rideId")
 
 	resp, err := h.svc.StartRide(c.Request.Context(), riderID)
 	if err != nil {
@@ -86,7 +86,7 @@ func (h *RideHandler) startRide(c *gin.Context) {
 }
 
 func (h *RideHandler) completeRide(c *gin.Context) {
-	rideID := c.Param("rideID")
+	rideID := c.Param("rideId")
 
 	resp, err := h.svc.CompleteRide(c.Request.Context(), rideID)
 	if err != nil {
@@ -97,7 +97,7 @@ func (h *RideHandler) completeRide(c *gin.Context) {
 }
 
 func (h *RideHandler) cancelRide(c *gin.Context) {
-	rideID := c.Param("rideID")
+	rideID := c.Param("rideId")
 
 	resp, err := h.svc.CancelRide(c.Request.Context(), rideID)
 	if err != nil {

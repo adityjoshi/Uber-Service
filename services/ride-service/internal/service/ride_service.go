@@ -67,9 +67,10 @@ func (s *RideService) RequestRide(ctx context.Context, req dto.RideRequest) (*dt
 	}
 
 	if err := s.producer.PublishRideRequested(ctx, event); err != nil {
-		log.Printf("service: failed to publish the ride.requested for rideId=%s: %v", err)
+		log.Printf("service: failed to publish ride.requested for rideID=%s: %v", ride.ID, err)
+	} else {
+		log.Printf("service: ride.requested published for rideID=%s", ride.ID)
 	}
-	log.Printf("service: ride.requested published for rideID=%s", ride.ID)
 
 	ride.Status = model.RideStatusMatching
 	if err := s.repo.Save(ctx, ride); err != nil {

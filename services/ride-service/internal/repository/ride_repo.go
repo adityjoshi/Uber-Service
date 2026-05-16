@@ -90,7 +90,7 @@ type scanner interface {
 
 func scanRide(s scanner) (*model.Ride, error) {
 	var ride model.Ride
-	err := s.Scan(&ride.ID, &ride.RiderID, &ride, ride.DriverID, &ride.PickupLatitude, &ride.PickupLongitude, &ride.PickupAddress, &ride.DropLatitude, &ride.DropLongitude,
+	err := s.Scan(&ride.ID, &ride.RiderID, &ride.DriverID, &ride.PickupLatitude, &ride.PickupLongitude, &ride.PickupAddress, &ride.DropLatitude, &ride.DropLongitude,
 		&ride.DropAddress, &ride.Status, &ride.EstimatedFare, &ride.ActualFare, &ride.CreatedAt, &ride.UpdatedAt, &ride.StartedAt, &ride.CompletedAt,
 	)
 	if err != nil {
