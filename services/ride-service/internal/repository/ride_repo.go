@@ -20,7 +20,7 @@ func (r *RideRepository) Save(ctx context.Context, ride *model.Ride) error {
 	query := `
 	INSERT INTO rides (
 		id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address,
-		drop_latitude, drpp_longitude, drop_address, status,
+		drop_latitude, drop_longitude, drop_address, status,
 		estimated_fare, actual_fare, created_at, updated_at, started_at, completed_at
 	) VALUES (
 		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
@@ -49,7 +49,7 @@ func (r *RideRepository) Save(ctx context.Context, ride *model.Ride) error {
 func (r *RideRepository) FindById(ctx context.Context, id string) (*model.Ride, error) {
 
 	query := `
-	SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drpp_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
+	SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drop_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
 	FROM rides
 	WHERE id = $1
 	`
@@ -63,7 +63,7 @@ func (r *RideRepository) FindById(ctx context.Context, id string) (*model.Ride, 
 
 func (r *RideRepository) FindByRiderId(ctx context.Context, riderId string) ([]*model.Ride, error) {
 	query := `
-		SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drpp_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
+		SELECT id, rider_id, driver_id, pickup_latitude, pickup_longitude, pickup_address, drop_latitude, drop_longitude, drop_address, status, estimated_fare,actual_fare,created_at,updated_at,started_at,completed_at
 	FROM rides where rider_id = $1 ORDER BY created_at DESC
 
 	`
