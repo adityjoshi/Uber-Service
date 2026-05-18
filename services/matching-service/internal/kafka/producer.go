@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -22,6 +23,10 @@ func NewProducer() *Producer {
 	}
 	log.Printf("kafka prodcuer connected to %v", brokers)
 	return &Producer{writer: writer}
+}
+
+func (p *Producer) PublishRideMatcher(ctx context.Context, event RideMatchedEvent) error {
+	return p.publish(ctx, getenv("TOPIC_RIDE_MATCHED", "ride.matched"), event.RideId, event)
 }
 
 func getenv(key, fallback string) string {
