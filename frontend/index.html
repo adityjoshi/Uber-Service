@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Uber Dev Console</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --border: #2a2a2a; --accent: #06c167; --danger: #e63946;
+      --warn: #f4a261; --text: #f0f0f0; --muted: #666; --radius: 12px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+    /* ── Header ── */
+    header { display:flex; align-items:center; gap:12px; padding:18px 28px; border-bottom:1px solid var(--border); }
+    .logo { font-size:20px; font-weight:800; }
+    .badge { font-size:10px; background:var(--accent); color:#000; padding:2px 8px; border-radius:99px; font-weight:700; text-transform:uppercase; }
+
+    /* ── Tabs ── */
+    nav { display:flex; gap:4px; padding:20px 28px 0; }
+    .tab-btn { padding:9px 22px; border:1px solid var(--border); border-bottom:none; background:var(--surface); color:var(--muted); border-radius:10px 10px 0 0; cursor:pointer; font-size:13px; font-weight:600; transition:.15s; }
+    .tab-btn.active { background:var(--surface2); color:var(--text); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+    .panel { background:var(--surface2); border:1px solid var(--border); border-top:none; border-radius:0 var(--radius) var(--radius) var(--radius); margin:0 28px; padding:24px; }
+
+    /* ── Layout ── */
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:900px){ .grid-3{ grid-template-columns:1fr 1fr; } }
+    @media(max-width:600px){ .grid-3,.grid-2{ grid-template-columns:1fr; } }
+
+    /* ── Cards ── */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:14px; }
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .section-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); }
+
+    /* ── Forms ── */
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .fg { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+    .fg.full { grid-column:1/-1; }
+    label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+    input, select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px 11px; font-size:13px; outline:none; transition:border-color .15s; width:100%; }
+    input:focus, select:focus { border-color:var(--accent); }
+    select option { background:var(--surface2); }
+
+    /* ── Buttons ── */
+    .btn { padding:9px 16px; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+    .btn-primary { background:var(--accent); color:#000; }
+    .btn-primary:hover { background:#08d970; }
+    .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-danger { background:var(--danger); color:#fff; }
+    .btn-warn { background:var(--warn); color:#000; }
+    .btn-sm { padding:5px 11px; font-size:11px; }
+    .btn:disabled { opacity:.35; cursor:not-allowed; }
+    .btn-group { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+
+    /* ── Status badges ── */
+    .badge-status { display:inline-block; padding:2px 9px; border-radius:99px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+    .s-requested   { background:#1e3a5f; color:#60a5fa; }
+    .s-matching    { background:#3b2c00; color:var(--warn); }
+    .s-accepted    { background:#0d3320; color:var(--accent); }
+    .s-ride_started{ background:#1a1a3e; color:#a78bfa; }
+    .s-completed   { background:#1a2e1a; color:#86efac; }
+    .s-cancelled   { background:#2d0a0a; color:var(--danger); }
+    .s-online      { background:#0d3320; color:var(--accent); }
+    .s-offline     { background:#2a2a2a; color:var(--muted); }
+
+    /* ── Driver card ── */
+    .driver-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; transition:.2s; }
+    .driver-card.online { border-color:#06c16740; }
+    .driver-card .d-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+    .driver-card .d-name { font-weight:700; font-size:14px; }
+    .driver-card .d-coords { font-size:11px; color:var(--muted); margin-top:3px; font-family:monospace; }
+    .driver-card .d-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+
+    /* ── Rider card ── */
+    .rider-card { background:var(--surface); border:2px solid var(--border); border-radius:var(--radius); padding:16px; cursor:pointer; transition:.2s; }
+    .rider-card:hover { border-color:#444; }
+    .rider-card.selected { border-color:var(--accent); }
+    .rider-card .r-avatar { width:40px; height:40px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:10px; }
+    .rider-card .r-name { font-weight:700; font-size:15px; }
+    .rider-card .r-id { font-size:11px; color:var(--muted); font-family:monospace; }
+    .rider-card .r-stats { font-size:11px; color:var(--muted); margin-top:6px; }
+
+    /* ── Ride card ── */
+    .ride-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:8px; }
+    .ride-card .rc-head { display:flex; justify-content:space-between; align-items:flex-start; }
+    .ride-card .rc-id { font-size:10px; color:var(--muted); font-family:monospace; margin-top:4px; }
+    .ride-card .rc-fare { font-size:18px; font-weight:800; color:var(--accent); }
+    .ride-card .rc-addr { font-size:11px; color:var(--muted); margin-top:5px; }
+    .ride-card .rc-addr strong { color:var(--text); }
+    .ride-card .rc-driver { font-size:11px; color:var(--accent); margin-top:4px; }
+    .divider { height:1px; background:var(--border); margin:14px 0; }
+    .empty { text-align:center; color:var(--muted); font-size:13px; padding:20px; }
+
+    /* ── Toast ── */
+    #toasts { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:7px; z-index:999; }
+    .toast { padding:11px 16px; border-radius:10px; font-size:12px; font-weight:600; max-width:300px; animation:slideIn .2s ease; }
+    .toast.success { background:var(--accent); color:#000; }
+    .toast.error   { background:var(--danger); color:#fff; }
+    .toast.info    { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+    @keyframes slideIn { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── Misc ── */
+    .pulse { animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .dot { width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px; }
+    .dot-green { background:var(--accent); }
+    .dot-grey  { background:var(--muted); }
+    .toggle-row { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:var(--muted); }
+    .toggle { position:relative; width:36px;height:19px; }
+    .toggle input { opacity:0;width:0;height:0; }
+    .slider { position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:.2s; }
+    .slider::before { content:"";position:absolute;width:13px;height:13px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s; }
+    .toggle input:checked + .slider { background:var(--accent); }
+    .toggle input:checked + .slider::before { transform:translateX(17px); }
+    .active-ride-wrap { margin-top:20px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">Uber</span>
+  <span class="badge">Dev Console</span>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="switchTab('rider')">🧑 Riders</button>
+  <button class="tab-btn" onclick="switchTab('driver')">🚗 Drivers</button>
+</nav>
+
+<!-- ═══════════════════════════════ RIDER TAB ═════════════════════════════ -->
+<div id="tab-rider" class="tab-pane active">
+  <div class="panel">
+
+    <!-- Rider selector -->
+    <div class="section-header">
+      <div class="section-title">Select Rider</div>
+    </div>
+    <div class="grid-2" style="margin-bottom:20px" id="rider-list"></div>
+
+    <div class="divider"></div>
+
+    <!-- Request + Active -->
+    <div class="grid-2" style="margin-top:20px">
+
+      <!-- Request form -->
+      <div class="card">
+        <div class="card-title">Request a Ride</div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Pickup Lat</label>
+            <input id="r-pickupLat" type="number" step="any" value="28.6139"/>
+          </div>
+          <div class="fg">
+            <label>Pickup Long</label>
+            <input id="r-pickupLong" type="number" step="any" value="77.2090"/>
+          </div>
+          <div class="fg full">
+            <label>Pickup Address</label>
+            <input id="r-pickupAddr" value="Connaught Place, New Delhi"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Drop Lat</label>
+            <input id="r-dropLat" type="number" step="any" value="28.5355"/>
+          </div>
+          <div class="fg">
+            <label>Drop Long</label>
+            <input id="r-dropLong" type="number" step="any" value="77.3910"/>
+          </div>
+          <div class="fg full">
+            <label>Drop Address</label>
+            <input id="r-dropAddr" value="Sector 18, Noida"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="requestRide()" id="req-btn">Request Ride</button>
+      </div>
+
+      <!-- Active ride -->
+      <div class="card">
+        <div class="card-title">Active Ride <span id="poll-dot"></span></div>
+        <div id="active-ride-panel"><div class="empty">No active ride.</div></div>
+      </div>
+
+    </div>
+
+    <!-- Ride history -->
+    <div style="margin-top:22px">
+      <div class="section-header">
+        <div class="section-title">Ride History</div>
+        <button class="btn btn-secondary btn-sm" onclick="loadRides()">↻ Refresh</button>
+      </div>
+      <div id="rides-list"><div class="empty">Select a rider to see rides.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DRIVER TAB ════════════════════════════ -->
+<div id="tab-driver" class="tab-pane">
+  <div class="panel">
+
+    <div class="section-header">
+      <div class="section-title">Drivers <span id="online-count" style="color:var(--accent)"></span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="pingAllDrivers()">↻ Refresh All</button>
+        <button class="btn btn-primary btn-sm" onclick="seedDrivers()">⚡ Seed All Online</button>
+      </div>
+    </div>
+    <div class="grid-3" id="driver-list"></div>
+
+    <!-- Driver ride history -->
+    <div style="margin-top:22px">
+      <div class="section-header">
+        <div class="section-title">Rides for <span id="selected-driver-name" style="color:var(--accent)">—</span></div>
+        <button class="btn btn-secondary btn-sm" onclick="loadDriverRides()">↻ Refresh</button>
+      </div>
+      <div id="driver-rides-list"><div class="empty">Select a driver to see their rides.</div></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Nearby search -->
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">Search Nearby Drivers</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="margin:0;flex:1;min-width:110px">
+          <label>Latitude</label>
+          <input id="s-lat" type="number" step="any" value="28.6139"/>
+        </div>
+        <div class="fg" style="margin:0;flex:1;min-width:110px">
+          <label>Longitude</label>
+          <input id="s-long" type="number" step="any" value="77.2090"/>
+        </div>
+        <div class="fg" style="margin:0;width:90px">
+          <label>Radius km</label>
+          <input id="s-radius" type="number" step="any" value="5"/>
+        </div>
+        <button class="btn btn-secondary" onclick="searchNearby()">Search</button>
+      </div>
+      <div id="nearby-list" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+const RIDE_API = 'http://localhost:8083';
+const LOC_API  = 'http://localhost:8082';
+
+// ── Seed data ─────────────────────────────────────────────────────────────
+const DRIVERS = [
+  { id: 'driver-001', name: 'Arjun',  emoji: '🧔', lat: 28.6200, long: 77.2100 },
+  { id: 'driver-002', name: 'Priya',  emoji: '👩', lat: 28.6180, long: 77.2050 },
+  { id: 'driver-003', name: 'Ravi',   emoji: '👨', lat: 28.6090, long: 77.2150 },
+  { id: 'driver-004', name: 'Sneha',  emoji: '👩‍💼', lat: 28.6250, long: 77.2180 },
+  { id: 'driver-005', name: 'Kiran',  emoji: '🧑', lat: 28.6160, long: 77.2010 },
+];
+
+const RIDERS = [
+  { id: 'rider-001', name: 'Adi',   emoji: '🧑‍💻' },
+  { id: 'rider-002', name: 'Rahul', emoji: '🧑‍🎓' },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let selectedRider  = RIDERS[0];
+let selectedDriver = null;
+let activeRideId   = null;
+let pollTimer      = null;
+let autoTimers     = {};   // driverId -> intervalId
+
+// ── Init ──────────────────────────────────────────────────────────────────
+(function init() {
+  renderRiders();
+  renderDrivers();
+  loadRides();
+  refreshDriverStatus();
+})();
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', ['rider','driver'][i] === name));
+  document.querySelectorAll('.tab-pane').forEach(el =>
+    el.classList.toggle('active', el.id === `tab-${name}`));
+  if (name === 'driver') refreshDriverStatus();
+}
+
+// ── Riders ────────────────────────────────────────────────────────────────
+function renderRiders() {
+  document.getElementById('rider-list').innerHTML = RIDERS.map(r => `
+    <div class="rider-card ${r.id === selectedRider.id ? 'selected' : ''}"
+         id="rcard-${r.id}" onclick="selectRider('${r.id}')">
+      <div class="r-avatar">${r.emoji}</div>
+      <div class="r-name">${r.name}</div>
+      <div class="r-id">${r.id}</div>
+      <div class="r-stats" id="rstats-${r.id}">Loading rides…</div>
+    </div>`).join('');
+  RIDERS.forEach(r => loadRiderStats(r.id));
+}
+
+async function loadRiderStats(riderId) {
+  try {
+    const rides = await get(`${RIDE_API}/api/v1/rides/rider/${riderId}`);
+    const el = document.getElementById(`rstats-${riderId}`);
+    if (!el) return;
+    const total     = rides ? rides.length : 0;
+    const completed = rides ? rides.filter(r => r.status === 'COMPLETED').length : 0;
+    el.textContent  = `${total} ride${total !== 1 ? 's' : ''} · ${completed} completed`;
+  } catch(_) {
+    const el = document.getElementById(`rstats-${riderId}`);
+    if (el) el.textContent = '0 rides';
+  }
+}
+
+function selectRider(id) {
+  selectedRider = RIDERS.find(r => r.id === id);
+  document.querySelectorAll('.rider-card').forEach(el =>
+    el.classList.toggle('selected', el.id === `rcard-${id}`));
+  clearPoll();
+  activeRideId = null;
+  document.getElementById('active-ride-panel').innerHTML = '<div class="empty">No active ride.</div>';
+  document.getElementById('poll-dot').innerHTML = '';
+  loadRides();
+  toast(`Switched to ${selectedRider.name}`, 'info');
+}
+
+// ── Ride request ──────────────────────────────────────────────────────────
+async function requestRide() {
+  const btn = document.getElementById('req-btn');
+  btn.disabled = true;
+  try {
+    const body = {
+      riderId:       selectedRider.id,
+      pickupLat:     num('r-pickupLat'),
+      pickupLong:    num('r-pickupLong'),
+      pickupAddress: val('r-pickupAddr'),
+      dropLat:       num('r-dropLat'),
+      dropLong:      num('r-dropLong'),
+      dropAddress:   val('r-dropAddr'),
+    };
+    const ride = await post(`${RIDE_API}/api/v1/rides/request`, body);
+    toast(`Ride requested for ${selectedRider.name}`, 'success');
+    setActiveRide(ride);
+    loadRides();
+    loadRiderStats(selectedRider.id);
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false;
+}
+
+// ── Ride actions ──────────────────────────────────────────────────────────
+async function startRide(id) {
+  try {
+    const r = await put(`${RIDE_API}/api/v1/rides/${id}/start`);
+    toast('Ride started!', 'success');
+    setActiveRide(r); loadRides();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function completeRide(id) {
+  try {
+    const r = await put(`${RIDE_API}/api/v1/rides/${id}/complete`);
+    toast(`Completed — ₹${r.actualFare}`, 'success');
+    clearPoll();
+    activeRideId = null;
+    document.getElementById('poll-dot').innerHTML = '';
+    renderActiveRide(r);
+    loadRides();
+    loadRiderStats(selectedRider.id);
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function cancelRide(id) {
+  if (!confirm('Cancel this ride?')) return;
+  try {
+    const r = await put(`${RIDE_API}/api/v1/rides/${id}/cancel`);
+    toast('Ride cancelled.', 'info');
+    clearPoll();
+    activeRideId = null;
+    document.getElementById('poll-dot').innerHTML = '';
+    renderActiveRide(r);
+    loadRides();
+    loadRiderStats(selectedRider.id);
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ── Ride history ──────────────────────────────────────────────────────────
+async function loadRides() {
+  if (!selectedRider) return;
+  try {
+    const rides = await get(`${RIDE_API}/api/v1/rides/rider/${selectedRider.id}`);
+    const el = document.getElementById('rides-list');
+    if (!rides || rides.length === 0) {
+      el.innerHTML = '<div class="empty">No rides yet.</div>'; return;
+    }
+    el.innerHTML = rides.map(r => rideCardHTML(r, r.id === activeRideId)).join('');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ── Active ride ───────────────────────────────────────────────────────────
+function setActiveRide(ride) {
+  activeRideId = ride.id;
+  renderActiveRide(ride);
+  startPoll(ride.id);
+}
+
+function renderActiveRide(ride) {
+  document.getElementById('active-ride-panel').innerHTML = rideCardHTML(ride, true);
+}
+
+function rideCardHTML(ride, withActions) {
+  const s     = ride.status.toLowerCase();
+  const badge = `<span class="badge-status s-${s}">${ride.status}</span>`;
+  const fare  = ride.status === 'COMPLETED' ? ride.actualFare : ride.estimatedFare;
+  const driver = ride.driverId
+    ? `<div class="rc-driver">🚗 ${ride.driverId}</div>`
+    : '';
+  const actions = withActions ? actionBtns(ride) : '';
+  return `
+    <div class="ride-card">
+      <div class="rc-head">
+        <div>${badge}${driver}<div class="rc-id">${ride.id.slice(0,18)}…</div></div>
+        <div class="rc-fare">₹${fare}</div>
+      </div>
+      <div class="rc-addr"><strong>From</strong> ${ride.pickupAddress || `${ride.pickupLat},${ride.pickupLong}`}</div>
+      <div class="rc-addr"><strong>To</strong> ${ride.dropAddress || `${ride.dropLat},${ride.dropLong}`}</div>
+      ${actions}
+    </div>`;
+}
+
+function actionBtns(ride) {
+  const id = ride.id, s = ride.status;
+  let b = '';
+  if (['ACCEPTED','DRIVER_ARRIVING'].includes(s))
+    b += `<button class="btn btn-primary btn-sm" onclick="startRide('${id}')">▶ Start</button>`;
+  if (s === 'RIDE_STARTED')
+    b += `<button class="btn btn-warn btn-sm" onclick="completeRide('${id}')">✓ Complete</button>`;
+  if (!['COMPLETED','CANCELLED'].includes(s))
+    b += `<button class="btn btn-danger btn-sm" onclick="cancelRide('${id}')">✕ Cancel</button>`;
+  return b ? `<div class="btn-group">${b}</div>` : '';
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────
+function startPoll(id) {
+  clearPoll();
+  document.getElementById('poll-dot').innerHTML =
+    `<span class="dot dot-green pulse"></span>`;
+  pollTimer = setInterval(async () => {
+    try {
+      const ride = await get(`${RIDE_API}/api/v1/rides/${id}`);
+      renderActiveRide(ride);
+      loadRides();
+      if (['COMPLETED','CANCELLED'].includes(ride.status)) {
+        clearPoll();
+        document.getElementById('poll-dot').innerHTML = '';
+      }
+    } catch(_) {}
+  }, 3000);
+}
+
+function clearPoll() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+// ── Drivers ───────────────────────────────────────────────────────────────
+function renderDrivers() {
+  document.getElementById('driver-list').innerHTML = DRIVERS.map(d => `
+    <div class="driver-card" id="dcard-${d.id}" onclick="selectDriver('${d.id}')" style="cursor:pointer">
+      <div class="d-head">
+        <div>
+          <div class="d-name">${d.emoji} ${d.name}</div>
+          <div class="r-id" style="margin-top:2px">${d.id}</div>
+        </div>
+        <span class="badge-status s-offline" id="dstatus-${d.id}">offline</span>
+      </div>
+      <div class="d-coords" id="dcoords-${d.id}">${d.lat}, ${d.long}</div>
+      <div class="d-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-primary btn-sm" onclick="goOnline('${d.id}')">Go Online</button>
+        <button class="btn btn-danger btn-sm" onclick="goOffline('${d.id}')">Go Offline</button>
+        <label class="toggle" title="Auto-update location">
+          <input type="checkbox" id="auto-${d.id}" onchange="toggleAuto('${d.id}')"/>
+          <span class="slider"></span>
+        </label>
+        <span style="font-size:11px;color:var(--muted)" id="autolabel-${d.id}">auto</span>
+      </div>
+    </div>`).join('');
+}
+
+function selectDriver(id) {
+  selectedDriver = DRIVERS.find(d => d.id === id);
+  document.querySelectorAll('.driver-card').forEach(el =>
+    el.style.borderColor = el.id === `dcard-${id}` ? 'var(--accent)' : '');
+  document.getElementById('selected-driver-name').textContent =
+    `${selectedDriver.emoji} ${selectedDriver.name}`;
+  loadDriverRides();
+}
+
+async function loadDriverRides() {
+  if (!selectedDriver) return;
+  const el = document.getElementById('driver-rides-list');
+  try {
+    const rides = await get(`${RIDE_API}/api/v1/rides/driver/${selectedDriver.id}`);
+    if (!rides || rides.length === 0) {
+      el.innerHTML = '<div class="empty">No rides yet for this driver.</div>'; return;
+    }
+    el.innerHTML = rides.map(r => rideCardHTML(r, false)).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty">Could not load rides.</div>';
+  }
+}
+
+async function refreshDriverStatus() {
+  let online = 0;
+  for (const d of DRIVERS) {
+    try {
+      const list = await get(
+        `${LOC_API}/api/v1/locations/driver/nearby?latitude=${d.lat}&longitude=${d.long}&radius=0.05`
+      );
+      const found = list && list.find(x => x.DriverID === d.id);
+      setDriverOnline(d.id, !!found, d.lat, d.long);
+      if (found) online++;
+    } catch(_) {}
+  }
+  document.getElementById('online-count').textContent = `(${online} online)`;
+}
+
+function setDriverOnline(id, online, lat, long) {
+  const card   = document.getElementById(`dcard-${id}`);
+  const badge  = document.getElementById(`dstatus-${id}`);
+  const coords = document.getElementById(`dcoords-${id}`);
+  if (!card) return;
+  card.classList.toggle('online', online);
+  badge.className = `badge-status ${online ? 's-online' : 's-offline'}`;
+  badge.textContent = online ? 'online' : 'offline';
+  if (lat && long) coords.textContent = `${lat.toFixed(4)}, ${long.toFixed(4)}`;
+}
+
+async function goOnline(id) {
+  const d = DRIVERS.find(x => x.id === id);
+  try {
+    await post(`${LOC_API}/api/v1/locations/driver/update`, { driverId: id, lat: d.lat, long: d.long });
+    setDriverOnline(id, true, d.lat, d.long);
+    toast(`${d.name} is online`, 'success');
+    refreshOnlineCount();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function goOffline(id) {
+  const d = DRIVERS.find(x => x.id === id);
+  try {
+    await fetch(`${LOC_API}/api/v1/locations/driver/${id}`, { method: 'DELETE' });
+    setDriverOnline(id, false, d.lat, d.long);
+    if (autoTimers[id]) { clearInterval(autoTimers[id]); delete autoTimers[id]; document.getElementById(`auto-${id}`).checked = false; }
+    toast(`${d.name} is offline`, 'info');
+    refreshOnlineCount();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function toggleAuto(id) {
+  const on = document.getElementById(`auto-${id}`).checked;
+  const label = document.getElementById(`autolabel-${id}`);
+  const d = DRIVERS.find(x => x.id === id);
+  if (on) {
+    label.innerHTML = `<span class="dot dot-green pulse"></span>live`;
+    autoTimers[id] = setInterval(() => {
+      // Slight jitter to simulate movement
+      const jitter = () => (Math.random() - 0.5) * 0.002;
+      d.lat  += jitter();
+      d.long += jitter();
+      post(`${LOC_API}/api/v1/locations/driver/update`, { driverId: id, lat: d.lat, long: d.long })
+        .then(() => setDriverOnline(id, true, d.lat, d.long))
+        .catch(() => {});
+    }, 4000);
+  } else {
+    clearInterval(autoTimers[id]);
+    delete autoTimers[id];
+    label.textContent = 'auto';
+  }
+}
+
+async function pingAllDrivers() {
+  await refreshDriverStatus();
+  toast('Driver status refreshed', 'info');
+}
+
+async function seedDrivers() {
+  let ok = 0;
+  for (const d of DRIVERS) {
+    try {
+      await post(`${LOC_API}/api/v1/locations/driver/update`, { driverId: d.id, lat: d.lat, long: d.long });
+      setDriverOnline(d.id, true, d.lat, d.long);
+      ok++;
+    } catch(_) {}
+  }
+  toast(`${ok} drivers seeded online`, 'success');
+  refreshOnlineCount();
+}
+
+function refreshOnlineCount() {
+  const cards = document.querySelectorAll('.driver-card.online');
+  document.getElementById('online-count').textContent = `(${cards.length} online)`;
+}
+
+// ── Nearby search ─────────────────────────────────────────────────────────
+async function searchNearby() {
+  const lat = val('s-lat'), long = val('s-long'), radius = val('s-radius');
+  try {
+    const list = await get(
+      `${LOC_API}/api/v1/locations/driver/nearby?latitude=${lat}&longitude=${long}&radius=${radius}`
+    );
+    const el = document.getElementById('nearby-list');
+    if (!list || list.length === 0) {
+      el.innerHTML = '<span style="color:var(--muted);font-size:13px">No drivers nearby.</span>'; return;
+    }
+    el.innerHTML = list.map(d => {
+      const info = DRIVERS.find(x => x.id === d.DriverID);
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px">
+        <div style="font-weight:700">${info ? info.emoji + ' ' + info.name : d.DriverID}</div>
+        <div style="color:var(--muted);margin-top:2px">${d.DriverID}</div>
+        <div style="color:var(--accent);margin-top:4px">${d.Distance.toFixed(2)} km away</div>
+      </div>`;
+    }).join('');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+const val = id => document.getElementById(id)?.value?.trim();
+const num = id => parseFloat(document.getElementById(id).value);
+
+async function get(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+async function post(url, body) {
+  const r = await fetch(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
+
+async function put(url) {
+  const r = await fetch(url, { method: 'PUT' });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
+
+function toast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+</script>
+</body>
+</html>
