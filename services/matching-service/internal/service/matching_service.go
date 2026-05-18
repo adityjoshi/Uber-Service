@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/dto"
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/kafka"
 )
 
@@ -57,4 +58,21 @@ func (s *MatchingService) MathDriverForRide(ctx context.Context, event kafka.Rid
 
 	log.Printf("matching: ride.matched published - rideID=%s driverID=%s distance=%.2fkm", event.RideID, best.DriverID, best.DistanceInKm)
 	return nil
+}
+
+func findBestDriver(drivers []dto.NearByDriverResponse) (dto.NearByDriverResponse, bool) {
+	if len(drivers) == 0 {
+		return dto.NearByDriverResponse{}, false
+	}
+
+	best := drivers[0]
+	bestScore := score(best)
+
+	for _, d := range drivers[1:] {
+		if s := score(d); s > bestScore {
+			bestScore = s
+			best = d
+		}
+	}
+	return best, true
 }
