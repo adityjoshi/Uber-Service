@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/s2a-go/fallback"
 	"github.com/segmentio/kafka-go"
 )
 
