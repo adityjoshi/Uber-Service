@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"math/rand"
 
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/dto"
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/kafka"
@@ -75,4 +76,10 @@ func findBestDriver(drivers []dto.NearByDriverResponse) (dto.NearByDriverRespons
 		}
 	}
 	return best, true
+}
+
+func score(d dto.NearByDriverResponse) float64 {
+	distanceScore := 1.0 / (d.DistanceInKm + 0.1)
+	simulatedRating := 4.0 + rand.Float64()
+	return (distanceScore * distanceWeight) + (simulatedRating * ratingWeight)
 }
