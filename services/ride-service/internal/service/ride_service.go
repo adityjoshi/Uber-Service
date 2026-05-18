@@ -90,6 +90,7 @@ func (s *RideService) UpdateRideWithDriver(ctx context.Context, rideID, driverID
 	}
 	ride.DriverID = &driverID
 	ride.Status = model.RideStatusAccepted
+	ride.UpdatedAt = time.Now()
 
 	if err := s.repo.Save(ctx, ride); err != nil {
 		return fmt.Errorf("service: update ride with the driver: %w", err)
@@ -108,7 +109,7 @@ func (s *RideService) StartRide(ctx context.Context, rideID string) (*dto.RideRe
 	}
 
 	if ride.Status != model.RideStatusAccepted {
-		return nil, fmt.Errorf("service: start ride error: %w", err)
+		return nil, fmt.Errorf("%w: cannot start ride, current status is %s", ErrInvalidStatus, ride.Status)
 	}
 	loc, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
@@ -181,6 +182,18 @@ func (s *RideService) GetRide(ctx context.Context, rideID string) (*dto.RideResp
 /*
 *List all the rides for the rider. Newest rides will be seen first
 * */
+
+func (s *RideService) ListByDriver(ctx context.Context, driverID string) ([]*dto.RideResponse, error) {
+	rides, err := s.repo.FindByDriverId(ctx, driverID)
+	if err != nil {
+		return nil, fmt.Errorf("service: fetch rides by driver: %w", err)
+	}
+	responses := make([]*dto.RideResponse, len(rides))
+	for i, r := range rides {
+		responses[i] = mapToResponse(r)
+	}
+	return responses, nil
+}
 
 func (s *RideService) ListByRider(ctx context.Context, riderID string) ([]*dto.RideResponse, error) {
 	rides, err := s.repo.FindByRiderId(ctx, riderID)

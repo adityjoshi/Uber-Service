@@ -8,7 +8,7 @@ const (
 	RideStatusRequested      RideStatus = "REQUESTED"
 	RideStatusMatching       RideStatus = "MATCHING"
 	RideStatusAccepted       RideStatus = "ACCEPTED"
-	RideStatusDriverArriving RideStatus = "DRIVER_ARIVING"
+	RideStatusDriverArriving RideStatus = "DRIVER_ARRIVING"
 	RideStatusRideStarted    RideStatus = "RIDE_STARTED"
 	RideStatusCompleted      RideStatus = "COMPLETED"
 	RideStatusCancelled      RideStatus = "CANCELLED"

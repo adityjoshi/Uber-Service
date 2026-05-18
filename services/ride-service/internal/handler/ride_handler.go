@@ -24,6 +24,7 @@ func (h *RideHandler) RegisterRoutes(r *gin.Engine) {
 		v1.POST("/request", h.requestRide)
 		v1.GET("/:rideId", h.getRide)
 		v1.GET("/rider/:riderId", h.listByRider)
+		v1.GET("/driver/:driverId", h.listByDriver)
 		v1.PUT("/:rideId/start", h.startRide)
 		v1.PUT("/:rideId/complete", h.completeRide)
 		v1.PUT("/:rideId/cancel", h.cancelRide)
@@ -69,6 +70,16 @@ func (h *RideHandler) listByRider(c *gin.Context) {
 		h.handleServiceError(c, err)
 		return
 
+	}
+	c.JSON(http.StatusOK, rides)
+}
+
+func (h *RideHandler) listByDriver(c *gin.Context) {
+	driverID := c.Param("driverId")
+	rides, err := h.svc.ListByDriver(c.Request.Context(), driverID)
+	if err != nil {
+		h.handleServiceError(c, err)
+		return
 	}
 	c.JSON(http.StatusOK, rides)
 }
