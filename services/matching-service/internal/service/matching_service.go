@@ -1,6 +1,11 @@
 package service
 
-import "github.com/adityjoshi/Uber-Service/services/matching-service/internal/kafka"
+import (
+	"context"
+	"log"
+
+	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/kafka"
+)
 
 const (
 	defaultSearchRadiuskm = 5.0
@@ -18,4 +23,38 @@ func NewMatchingService(locationClient *client.LocationClient, producer *kafka.P
 		locationClient: locationClient,
 		producer:       producer,
 	}
+}
+
+func (s *MatchingService) MathDriverForRide(ctx context.Context, event kafka.RideRequestedEvent) error {
+	log.Printf("matching: finding rider for rideID=%s", event.RideID)
+
+	drivers, err := s.locationClient.GetNearbyDrivers(ctx, event.PickupLatitude, event.PickupLongitude, defaultSearchRadiuskm)
+	if err != nil {
+		return err
+	}
+	if len(drivers) == 0 {
+		log.Printf("matching: no suitable drivers for rideID=%s", event.RideID)
+		return nil
+	}
+
+	best, found := findBestDriver(drivers)
+	if !found {
+		log.Printf("matching: no suitable driver for rideID=%s", event.RideID)
+		return nil
+	}
+
+	matchedEvent := kafka.RideMatchedEvent{
+		RideId:             event.RideID,
+		RiderID:            event.RiderID,
+		DriverID:           best.DriverID,
+		DriverLatitude:     best.Latitude,
+		DriverLongitude:    best.Longitude,
+		DistanceToPickupKm: best.DistanceInKm,
+	}
+	if err := s.producer.PublishRideMatcher(ctx, matchedEvent); err != nil {
+		return err
+	}
+
+	log.Printf("matching: ride.matched published - rideID=%s driverID=%s distance=%.2fkm", event.RideID, best.DriverID, best.DistanceInKm)
+	return nil
 }
