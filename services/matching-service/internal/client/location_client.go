@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/dto"
@@ -50,4 +51,11 @@ func (c *LocationClient) GetNearbyDrivers(ctx context.Context, latitude, longitu
 		return nil, fmt.Errorf("location client: decode response: %w", err)
 	}
 	return drivers, nil
+}
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
