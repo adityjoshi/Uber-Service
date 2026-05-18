@@ -14,10 +14,10 @@ type Consumer struct {
 	reader *kafka.Reader
 }
 
-type RideRequestHandler func(ctx context.Context, event RideRequestHandler) error
+type RideRequestHandler func(ctx context.Context, event RideRequestedEvent) error
 
 func NewConsumer() *Consumer {
-	brokers := strings.Split(getenv("KAFKA_BROKERS", "kafka_9092"), ",")
+	brokers := strings.Split(getenv("KAFKA_BROKERS", "kafka:9092"), ",")
 	topic := getenv("TOPIC_RIDE_REQUESTED", "ride.requested")
 	group := getenv("KAFKA_CONSUMER_GROUP", "matching-service-group")
 

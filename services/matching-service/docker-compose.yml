@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: services/matching-service/Dockerfile
+    ports:
+      - "8084:8084"
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      HTTP_ADDR: ":8084"
+
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: matching-service-group
+      TOPIC_RIDE_REQUESTED: ride.requested
+      TOPIC_RIDE_MATCHED: ride.matched
+
+      LOCATION_SERVICE_URL: http://app:8082
+
+    networks:
+      - ride-net
+      - location-net
+    restart: unless-stopped
+
+  kafka-init:
+    image: apache/kafka:latest
+    networks:
+      - ride-net
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka:9092 >/dev/null 2>&1; do
+          echo "waiting for kafka..."; sleep 3;
+        done &&
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ride.requested --partitions 1 --replication-factor 1 &&
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ride.matched --partitions 1 --replication-factor 1 &&
+        echo "topics ready"
+    restart: "no"
+
+networks:
+  ride-net:
+    name: ride-service_default
+    external: true
+  location-net:
+    name: location-service_default
+    external: true

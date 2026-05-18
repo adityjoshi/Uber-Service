@@ -27,7 +27,7 @@ func NewLocationClient() *LocationClient {
 
 func (c *LocationClient) GetNearbyDrivers(ctx context.Context, latitude, longitude, radius float64) ([]dto.NearByDriverResponse, error) {
 	url := fmt.Sprintf(
-		"%s/api/v1/locations/drivers/nearby?latitude=%f&longitude=%f&radius=%f",
+		"%s/api/v1/locations/driver/nearby?latitude=%f&longitude=%f&radius=%f",
 		c.baseURL, latitude, longitude, radius,
 	)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

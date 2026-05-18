@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 
+	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/client"
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/dto"
 	"github.com/adityjoshi/Uber-Service/services/matching-service/internal/kafka"
 )
@@ -49,15 +50,15 @@ func (s *MatchingService) MathDriverForRide(ctx context.Context, event kafka.Rid
 		RideId:             event.RideID,
 		RiderID:            event.RiderID,
 		DriverID:           best.DriverID,
-		DriverLatitude:     best.Latitude,
-		DriverLongitude:    best.Longitude,
-		DistanceToPickupKm: best.DistanceInKm,
+		DriverLatitude:     best.Lat,
+		DriverLongitude:    best.Long,
+		DistanceToPickupKm: best.Distance,
 	}
 	if err := s.producer.PublishRideMatcher(ctx, matchedEvent); err != nil {
 		return err
 	}
 
-	log.Printf("matching: ride.matched published - rideID=%s driverID=%s distance=%.2fkm", event.RideID, best.DriverID, best.DistanceInKm)
+	log.Printf("matching: ride.matched published - rideID=%s driverID=%s distance=%.2fkm", event.RideID, best.DriverID, best.Distance)
 	return nil
 }
 
@@ -79,7 +80,7 @@ func findBestDriver(drivers []dto.NearByDriverResponse) (dto.NearByDriverRespons
 }
 
 func score(d dto.NearByDriverResponse) float64 {
-	distanceScore := 1.0 / (d.DistanceInKm + 0.1)
+	distanceScore := 1.0 / (d.Distance + 0.1)
 	simulatedRating := 4.0 + rand.Float64()
 	return (distanceScore * distanceWeight) + (simulatedRating * ratingWeight)
 }

@@ -2,7 +2,7 @@ package dto
 
 // gives the driver's current location
 type DriverLocationReq struct {
-	DriverID string
-	Lat      float64
-	Long     float64
+	DriverID string  `json:"driverId"`
+	Lat      float64 `json:"lat"`
+	Long     float64 `json:"long"`
 }
